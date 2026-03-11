@@ -1,5 +1,0 @@
-<<<<<<< HEAD
-Line 1: Main branch version
-=======
-Line 1: Branch A version
->>>>>>> branch-a
