@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<!-- Added parallel="classes" and thread-count here -->
+<suite name="All Test Suite" parallel="classes" thread-count="3">
+
+    <test verbose="2" name="ParallelClassesTest">
+        <classes>
+            <!-- Only these 3 methods will run for WelcomePageTest -->
+            <class name="testing.WelcomePageTest">
+                <methods>
+                    <include name="verifyWelcomePageHeading"/>
+                    <include name="moveToRegisterPage"/>
+                    <include name="verifyRegisterPageHeading"/>
+                </methods>
+            </class>
+
+            <!-- All methods in Test1 and Test2 will run parallel to WelcomePageTest -->
+<!--            <class name="testing.Test1" />-->
+<!--            <class name="testing.Test2" />-->
+        </classes>
+    </test>
+</suite>
