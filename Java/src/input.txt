@@ -1,5 +1,0 @@
-Hello   world
-Hello      Java
-Hello   world
-Java is   great
-Java   is fun
