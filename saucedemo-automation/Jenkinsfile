@@ -1,44 +1,21 @@
-pipeline {
-    agent any
-
-    tools {
-        maven 'Apache Maven 3.9.12'
-        jdk   'JDK -23'
-    }
-
-    parameters {
-        choice(name: 'BROWSER',
-               choices: ['chrome', 'firefox'],
-               description: 'Browser to run tests on')
-        choice(name: 'ENV',
-               choices: ['staging', 'prod'],
-               description: 'Target environment')
-        string(name: 'TAGS',
-               defaultValue: '@Regression',
-               description: 'Cucumber tag expression')
-    }
-
-    environment {
-        HEADLESS   = 'true'
-        REPORT_DIR = 'target/ExtentReports'
-    }
-
     stages {
         stage('Compile') {
             steps {
                 echo 'Compiling project...'
-                sh 'mvn clean compile -q'
+                // Changed sh to bat
+                bat 'mvn clean compile -q'
             }
         }
 
         stage('Run Tests') {
             steps {
                 echo "Running tests with tags: ${params.TAGS} on ${params.BROWSER}"
-                sh """
-                    mvn test \
-                      -Dbrowser=${params.BROWSER} \
-                      -Dheadless=${env.HEADLESS} \
-                      -Denv=${params.ENV} \
+                // Changed sh to bat and fixed the line continuation (Windows uses ^ instead of \)
+                bat """
+                    mvn test ^
+                      -Dbrowser=${params.BROWSER} ^
+                      -Dheadless=${env.HEADLESS} ^
+                      -Denv=${params.ENV} ^
                       -Dcucumber.filter.tags="${params.TAGS}"
                 """
             }
@@ -48,33 +25,5 @@ pipeline {
                 }
             }
         }
-
-        stage('Publish Reports') {
-            steps {
-                // Extent Report
-                publishHTML(target: [
-                    allowMissing         : false,
-                    alwaysLinkToLastBuild: true,
-                    keepAll              : true,
-                    reportDir            : "${env.REPORT_DIR}",
-                    reportFiles          : 'SparkReport.html',
-                    reportName           : 'Extent Report'
-                ])
-                
-                // Cucumber Report
-                cucumber buildStatus: 'UNSTABLE',
-                         reportTitle: 'SauceDemo Cucumber Report',
-                         fileIncludePattern: '**/cucumber.json',
-                         trendsLimit: 10
-            }
-        }
+        // ... rest of your stages
     }
-
-    post {
-        always {
-            archiveArtifacts artifacts: 'target/ExtentReports/**', fingerprint: true, allowEmptyArchive: true
-            archiveArtifacts artifacts: 'target/cucumber-reports/**', fingerprint: true, allowEmptyArchive: true
-            cleanWs()
-        }
-    }
-}
