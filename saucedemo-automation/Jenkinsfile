@@ -27,7 +27,7 @@ pipeline {
         stage('Compile') {
             steps {
                 echo 'Compiling project...'
-                bat 'mvn clean compile -q'
+                bat 'mvn -f saucedemo-automation/pom.xml clean compile -q'
             }
         }
 
@@ -35,10 +35,10 @@ pipeline {
             steps {
                 echo "Running tests with tags: ${params.TAGS} on ${params.BROWSER}"
                 bat """
-                    mvn test \
-                      -Dbrowser=${params.BROWSER} \
-                      -Dheadless=${env.HEADLESS} \
-                      -Denv=${params.ENV} \
+                    mvn -f saucedemo-automation/pom.xml test ^
+                      -Dbrowser=${params.BROWSER} ^
+                      -Dheadless=${env.HEADLESS} ^
+                      -Denv=${params.ENV} ^
                       -Dcucumber.filter.tags="${params.TAGS}"
                 """
             }
