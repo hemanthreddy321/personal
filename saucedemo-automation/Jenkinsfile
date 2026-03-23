@@ -15,7 +15,7 @@ pipeline {
                description: 'Target environment')
         string(name: 'TAGS',
                defaultValue: '@Regression',
-               description: 'Cucumber tag expression e.g. @Login or @Regression and not @Wip')
+               description: 'Cucumber tag expression')
     }
 
     environment {
@@ -24,16 +24,6 @@ pipeline {
     }
 
     stages {
-
-        stage('Checkout') {
-            steps {
-                echo "Checking out branch: ${env.GIT_BRANCH}"
-                git branch: 'main',
-                    url: 'https://github.com/hemanthreddy321/personal.git',
-                    // credentialsId: 'github-creds'
-            }
-        }
-
         stage('Compile') {
             steps {
                 echo 'Compiling project...'
@@ -45,10 +35,10 @@ pipeline {
             steps {
                 echo "Running tests with tags: ${params.TAGS} on ${params.BROWSER}"
                 sh """
-                    mvn test \\
-                      -Dbrowser=${params.BROWSER} \\
-                      -Dheadless=${env.HEADLESS} \\
-                      -Denv=${params.ENV} \\
+                    mvn test \
+                      -Dbrowser=${params.BROWSER} \
+                      -Dheadless=${env.HEADLESS} \
+                      -Denv=${params.ENV} \
                       -Dcucumber.filter.tags="${params.TAGS}"
                 """
             }
@@ -59,8 +49,9 @@ pipeline {
             }
         }
 
-        stage('Publish Extent Report') {
+        stage('Publish Reports') {
             steps {
+                // Extent Report
                 publishHTML(target: [
                     allowMissing         : false,
                     alwaysLinkToLastBuild: true,
@@ -69,56 +60,20 @@ pipeline {
                     reportFiles          : 'SparkReport.html',
                     reportName           : 'Extent Report'
                 ])
-            }
-        }
-
-        stage('Publish Cucumber Report') {
-            steps {
-                cucumber buildStatus                : 'UNSTABLE',
-                         reportTitle                : 'SauceDemo Cucumber Report',
-                         fileIncludePattern         : '**/cucumber.json',
-                         trendsLimit                : 10,
-                         classifications            : [
-                             [key: 'Branch', value: "${env.GIT_BRANCH}"],
-                             [key: 'Browser', value: "${params.BROWSER}"],
-                             [key: 'Environment', value: "${params.ENV}"]
-                         ]
+                
+                // Cucumber Report
+                cucumber buildStatus: 'UNSTABLE',
+                         reportTitle: 'SauceDemo Cucumber Report',
+                         fileIncludePattern: '**/cucumber.json',
+                         trendsLimit: 10
             }
         }
     }
 
     post {
-        success {
-            echo "BUILD PASSED - Report: ${env.BUILD_URL}Extent_Report/"
-            slackSend(color: 'good',
-                      message: "PASSED: ${env.JOB_NAME} #${env.BUILD_NUMBER} | ${env.BUILD_URL}Extent_Report/")
-        }
-        failure {
-            emailext(
-                subject: "FAILED: ${env.JOB_NAME} Build #${env.BUILD_NUMBER}",
-                body: """
-                    <h2>Build Failed</h2>
-                    <p><b>Job:</b> ${env.JOB_NAME}</p>
-                    <p><b>Build #:</b> ${env.BUILD_NUMBER}</p>
-                    <p><b>Branch:</b> ${env.GIT_BRANCH}</p>
-                    <p><b>Browser:</b> ${params.BROWSER}</p>
-                    <p><b>Tags:</b> ${params.TAGS}</p>
-                    <p><b>Console:</b> <a href="${env.BUILD_URL}console">${env.BUILD_URL}console</a></p>
-                    <p><b>Report:</b> <a href="${env.BUILD_URL}Extent_Report/">${env.BUILD_URL}Extent_Report/</a></p>
-                """,
-                mimeType: 'text/html',
-                to: 'hemanthreddy12773@gmail.com'
-            )
-            slackSend(color: 'danger',
-                      message: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER} | ${env.BUILD_URL}console")
-        }
-        unstable {
-            echo "BUILD UNSTABLE - Some tests failed"
-        }
         always {
-            archiveArtifacts artifacts: 'target/ExtentReports/**',      fingerprint: true
-            archiveArtifacts artifacts: 'target/cucumber-reports/**',   fingerprint: true
-            archiveArtifacts artifacts: 'target/screenshots/**',        fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'target/ExtentReports/**', fingerprint: true, allowEmptyArchive: true
+            archiveArtifacts artifacts: 'target/cucumber-reports/**', fingerprint: true, allowEmptyArchive: true
             cleanWs()
         }
     }
