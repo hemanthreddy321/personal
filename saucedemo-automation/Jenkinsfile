@@ -20,7 +20,7 @@ pipeline {
 
     environment {
         HEADLESS   = 'true'
-        REPORT_DIR = 'target/ExtentReports'
+        REPORT_DIR = 'saucedemo-automation/target/ExtentReports'
     }
 
     stages {
@@ -49,7 +49,7 @@ pipeline {
             }
         }
 
-        stage('Publish Reports') {
+stage('Publish Reports') {
             steps {
                 // Extent Report
                 publishHTML(target: [
@@ -62,9 +62,10 @@ pipeline {
                 ])
                 
                 // Cucumber Report
+                // FIX: Updated fileIncludePattern to find the JSON inside the subfolder
                 cucumber buildStatus: 'UNSTABLE',
                          reportTitle: 'SauceDemo Cucumber Report',
-                         fileIncludePattern: '**/cucumber.json',
+                         fileIncludePattern: 'saucedemo-automation/**/cucumber.json',
                          trendsLimit: 10
             }
         }
