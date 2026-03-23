@@ -29,8 +29,8 @@ pipeline {
             steps {
                 echo "Checking out branch: ${env.GIT_BRANCH}"
                 git branch: 'main',
-                    url: 'https://github.com/your-org/saucedemo-automation.git',
-                    credentialsId: 'github-creds'
+                    url: 'https://github.com/hemanthreddy321/personal.git',
+                    // credentialsId: 'github-creds'
             }
         }
 
