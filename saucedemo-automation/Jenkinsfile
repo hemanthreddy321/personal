@@ -107,7 +107,7 @@ pipeline {
                     <p><b>Report:</b> <a href="${env.BUILD_URL}Extent_Report/">${env.BUILD_URL}Extent_Report/</a></p>
                 """,
                 mimeType: 'text/html',
-                to: 'qa-team@yourcompany.com'
+                to: 'hemanthreddy12773@gmail.com'
             )
             slackSend(color: 'danger',
                       message: "FAILED: ${env.JOB_NAME} #${env.BUILD_NUMBER} | ${env.BUILD_URL}console")
